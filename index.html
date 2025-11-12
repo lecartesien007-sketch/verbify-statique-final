@@ -40,7 +40,7 @@
             app = initializeApp(firebaseConfig);
             auth = getAuth(app);
             db = getDatabase(app);
-            firebase.database().setLogLevel('error');
+            // LIGNE CORRIGÉE : L'ancienne ligne (firebase.database().setLogLevel) a été SUPPRIMÉE.
         } catch (e) {
             console.error("Erreur d'initialisation de Firebase:", e);
         }
@@ -397,7 +397,7 @@
                                         : 'bg-gray-100 border-gray-300 hover:bg-gray-200 text-gray-800'
                                 }`}
                             >
-                                option
+                                {option}
                             </button>
                         ))}
                         
@@ -643,6 +643,7 @@
                 setApiResult(null);
                 setError(null);
                 
+                // Simulation pour éviter les erreurs CORS/API dans un HTML simple
                 setTimeout(() => {
                     const verb = VERB_LIST.find(v => v.base === searchTerm.toLowerCase());
                     if (verb) {
@@ -653,13 +654,13 @@
                                 partOfSpeech: 'verb',
                                 definitions: [{
                                     definition: verb.fr,
-                                    example: `The boss decided to ${verb.base} the project.`
+                                    example: `You must learn to ${verb.base} correctly.`
                                 }]
                             }]
                         });
                         setError(null);
                     } else {
-                         setError('Mot non trouvé (Fonctionnalité limitée en HTML simple).');
+                         setError('Mot non trouvé (Fonctionnalité API simulée).');
                     }
                     setIsLoading(false);
                 }, 800);
