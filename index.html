@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verbify Pro - FCGE</title>
+    <title>Verbify Pro v10 - FCGE</title>
     <!-- Chargement Tailwind CSS (pour le style) -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chargement React et ReactDOM (Moteurs de l'application) -->
@@ -11,20 +11,20 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
     <!-- Chargement Babel (pour transformer le code React en JavaScript simple) -->
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    <!-- Chargement Firebase (Database et Auth) -->
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+    
+    <!-- Chargement Firebase (Scripts v8-compatibles) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
 </head>
 <body>
     <div id="root"></div>
 
     <script type="text/babel">
+        // Syntaxe React
         const { useState, useEffect, useMemo, useCallback, memo } = React;
-        const { initializeApp } = firebase.app;
-        const { getAuth, signInAnonymously, onAuthStateChanged } = firebase.auth;
-        const { getDatabase, ref, get, set, onValue, update, query, orderByChild, limitToLast } = firebase.database;
-
+        
+        // --- CONFIGURATION FIREBASE (v8) ---
         const firebaseConfig = {
             apiKey: "AIzaSyCZQXRtEITaC7X5YJPH-VvfDuhzZYi1sSI",
             authDomain: "verbufy-by-bechir.firebaseapp.com",
@@ -35,16 +35,18 @@
             databaseURL: "https://verbufy-by-bechir-default-rtdb.firebaseio.com"
         };
 
+        // --- INITIALISATION (v8) ---
         let app, auth, db;
         try {
-            app = initializeApp(firebaseConfig);
-            auth = getAuth(app);
-            db = getDatabase(app);
-            // LIGNE CORRIGÉE : L'ancienne ligne (firebase.database().setLogLevel) a été SUPPRIMÉE.
+            // Utilise la syntaxe v8
+            app = firebase.initializeApp(firebaseConfig);
+            auth = firebase.auth();
+            db = firebase.database();
         } catch (e) {
             console.error("Erreur d'initialisation de Firebase:", e);
         }
 
+        // --- BASE DE DONNÉES DES VERBES ---
         const VERB_LIST = [
             { base: "be", past: "was/were", part: "been", fr: "être" },
             { base: "have", past: "had", part: "had", fr: "avoir" },
@@ -78,14 +80,14 @@
         ];
 
         const FINANCE_VERBS = [
-            { base: "audit", fr: "auditer", ex: "The firm will audit our accounts." },
-            { base: "leverage", fr: "utiliser un effet de levier", ex: "They leveraged their assets to buy the company." },
-            { base: "hedge", fr: "couvrir (un risque)", ex: "He hedged his bets by investing in gold." },
-            { base: "underwrite", fr: "souscrire / garantir", ex: "The bank agreed to underwrite the new share issue." },
-            { base: "allocate", fr: "allouer", ex: "We need to allocate more resources to this project." },
-            { base: "amortize", fr: "amortir", ex: "The loan will be amortized over 10 years." },
-            { base: "invest", fr: "investir", ex: "She invests 20% of her salary." },
-            { base: "liquidate", fr: "liquider", ex: "They had to liquidate their assets." },
+            { base: "audit", past: "audited", part: "audited", fr: "auditer", ex: "The firm will audit our accounts." },
+            { base: "leverage", past: "leveraged", part: "leveraged", fr: "utiliser un effet de levier", ex: "They leveraged their assets to buy the company." },
+            { base: "hedge", past: "hedged", part: "hedged", fr: "couvrir (un risque)", ex: "He hedged his bets by investing in gold." },
+            { base: "underwrite", past: "underwrote", part: "underwritten", fr: "souscrire / garantir", ex: "The bank agreed to underwrite the new share issue." },
+            { base: "allocate", past: "allocated", part: "allocated", fr: "allouer", ex: "We need to allocate more resources to this project." },
+            { base: "amortize", past: "amortized", part: "amortized", fr: "amortir", ex: "The loan will be amortized over 10 years." },
+            { base: "invest", past: "invested", part: "invested", fr: "investir", ex: "She invests 20% of her salary." },
+            { base: "liquidate", past: "liquidated", part: "liquidated", fr: "liquider", ex: "They had to liquidate their assets." },
             { base: "yield", past: "yielded", part: "yielded", fr: "rapporter / céder" },
             { base: "forecast", past: "forecast", part: "forecast", fr: "prévoir" },
         ];
@@ -182,8 +184,9 @@
                 setIsLoading(true);
                 setError(null);
                 try {
-                    const userRef = ref(db, `users/${userId}`);
-                    await update(userRef, { name: name });
+                    // Syntaxe v8
+                    const userRef = db.ref(`users/${userId}`);
+                    await userRef.update({ name: name });
                 } catch (err) {
                     console.error("Erreur saveName:", err);
                     setError("Impossible d'enregistrer le nom. Réessayez.");
@@ -252,14 +255,16 @@
                     .sort(() => 0.5 - Math.random())
                     .slice(0, 5);
 
+                let verbsToSet;
                 if (newVerbs.length < 5) {
-                    const allVerbsShuffled = [...VERB_LIST].sort(() => 0.5 - Math.random()).slice(0, 5);
-                    setDailyVerbs(allVerbsShuffled);
-                    await set(ref(db, `users/${userId}/dailyVerbs`), allVerbsShuffled.map(v => v.base));
+                    verbsToSet = [...VERB_LIST].sort(() => 0.5 - Math.random()).slice(0, 5);
                 } else {
-                    setDailyVerbs(newVerbs);
-                    await set(ref(db, `users/${userId}/dailyVerbs`), newVerbs.map(v => v.base));
+                    verbsToSet = newVerbs;
                 }
+                
+                setDailyVerbs(verbsToSet);
+                // Syntaxe v8
+                await db.ref(`users/${userId}/dailyVerbs`).set(verbsToSet.map(v => v.base));
                 setIsLoading(false);
             }, [userData, userId]);
 
@@ -673,7 +678,8 @@
                 } else {
                     newFavorites[verbBase] = true;
                 }
-                await update(ref(db, `users/${userId}`), { favorites: newFavorites });
+                // Syntaxe v8
+                await db.ref(`users/${userId}`).update({ favorites: newFavorites });
             };
             
             const playAudio = (audioUrl, word) => {
@@ -867,25 +873,32 @@
             const [isLoading, setIsLoading] = useState(true);
 
             useEffect(() => {
-                if (!db) return;
+                if (!db) {
+                    setIsLoading(false);
+                    return;
+                };
 
-                const usersRef = ref(db, 'users');
-                const topUsersQuery = query(usersRef, orderByChild('xp'), limitToLast(10));
+                // Syntaxe v8
+                const usersRef = db.ref('users');
+                const topUsersQuery = usersRef.orderByChild('xp').limitToLast(10);
 
-                const unsubscribe = onValue(topUsersQuery, (snapshot) => {
+                const onValueCallback = (snapshot) => {
                     const data = snapshot.val();
                     if (data) {
                         const sortedUsers = Object.values(data)
-                            .sort((a, b) => b.xp - a.xp);
+                            .sort((a, b) => (b.xp || 0) - (a.xp || 0)); // Ajout de sécurité pour les xp non définis
                         setLeaderboard(sortedUsers);
                     }
                     setIsLoading(false);
-                }, (error) => {
+                };
+                
+                topUsersQuery.on('value', onValueCallback, (error) => {
                     console.error("Erreur classement:", error);
                     setIsLoading(false);
                 });
 
-                return () => unsubscribe();
+                // Syntaxe v8 pour se désabonner
+                return () => topUsersQuery.off('value', onValueCallback);
             }, []);
 
             return (
@@ -904,9 +917,9 @@
                                             {index === 2 && '🥉'}
                                             {index > 2 && `${index + 1}.`}
                                         </span>
-                                        <span className="text-lg font-semibold">{user.name}</span>
+                                        <span className="text-lg font-semibold">{user.name || 'Utilisateur Anonyme'}</span>
                                     </div>
-                                    <span className="text-lg font-bold text-indigo-600">{user.xp} XP</span>
+                                    <span className="text-lg font-bold text-indigo-600">{user.xp || 0} XP</span>
                                 </li>
                             ))}
                         </ol>
@@ -928,15 +941,21 @@
 
             // 1. Authentification
             useEffect(() => {
-                if (!auth) return;
-                const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+                if (!auth) {
+                    setAppError("La connexion Firebase a échoué.");
+                    setLoadingUser(false);
+                    return;
+                };
+                // Syntaxe v8
+                const unsubscribe = auth.onAuthStateChanged(async (currentUser) => {
                     if (currentUser) {
                         setUser(currentUser);
                         await checkAndCreateUserData(currentUser.uid);
                         setIsAuthReady(true);
                     } else {
                         try {
-                            signInAnonymously(auth);
+                            // Syntaxe v8
+                            await auth.signInAnonymously();
                         } catch (error) {
                             console.error("Erreur de connexion anonyme:", error);
                             setAppError("Impossible de se connecter au service.");
@@ -948,9 +967,10 @@
 
             // 2. Création/Vérification des données
             const checkAndCreateUserData = async (userId) => {
-                const userRef = ref(db, `users/${userId}`);
+                // Syntaxe v8
+                const userRef = db.ref(`users/${userId}`);
                 try {
-                    const snapshot = await get(userRef);
+                    const snapshot = await userRef.get();
                     if (!snapshot.exists()) {
                         const newUserData = {
                             name: "",
@@ -961,7 +981,8 @@
                             dailyVerbs: [],
                             createdAt: new Date().toISOString(),
                         };
-                        await set(userRef, newUserData);
+                        // Syntaxe v8
+                        await userRef.set(newUserData);
                     }
                 } catch (error) {
                     console.error("Erreur checkAndCreateUserData:", error);
@@ -972,25 +993,31 @@
             // 3. Écoute des données
             useEffect(() => {
                 if (!isAuthReady || !user) return;
-                const userRef = ref(db, `users/${user.uid}`);
-                const unsubscribe = onValue(userRef, (snapshot) => {
+                // Syntaxe v8
+                const userRef = db.ref(`users/${user.uid}`);
+                const onValueCallback = (snapshot) => {
                     if (snapshot.exists()) {
                         setUserData(snapshot.val());
                     } else {
                         console.warn("Snapshot utilisateur inexistant.");
                     }
                     setLoadingUser(false);
-                }, (error) => {
+                };
+                
+                userRef.on('value', onValueCallback, (error) => {
                     console.error("Erreur onValue (userData):", error);
                     setAppError("Impossible de synchroniser les données utilisateur.");
                     setLoadingUser(false);
                 });
-                return () => unsubscribe();
+                // Syntaxe v8 pour se désabonner
+                return () => userRef.off('value', onValueCallback);
             }, [isAuthReady, user]);
 
             const startQuiz = useCallback(() => {
-                if (userData.dailyVerbs && userData.dailyVerbs.length > 0) {
-                    const verbs = userData.dailyVerbs.map(base => VERB_LIST.find(v => v.base === base));
+                if (userData && userData.dailyVerbs && userData.dailyVerbs.length > 0) {
+                    const verbs = userData.dailyVerbs
+                        .map(base => VERB_LIST.find(v => v.base === base))
+                        .filter(Boolean); // Filtre les verbes non trouvés
                     const questions = verbs.map(v => createQuizQuestion(v));
                     setQuizQuestions(questions);
                     setCurrentScreen('quiz');
@@ -1015,7 +1042,8 @@
                     dailyVerbs: [],
                 };
                 
-                await update(ref(db, `users/${user.uid}`), updates);
+                // Syntaxe v8
+                await db.ref(`users/${user.uid}`).update(updates);
                 setCurrentScreen('lecon');
             };
 
@@ -1027,7 +1055,8 @@
                 return <LoadingScreen message={`Erreur : ${appError}`} />;
             }
             if (!userData || !userData.name) {
-                return <LoginScreen userId={user.uid} />;
+                // Assure que userId est disponible, sinon l'écran de connexion échouera
+                return <LoginScreen userId={user ? user.uid : null} />;
             }
 
             return (
